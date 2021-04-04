@@ -1,44 +1,79 @@
-// get data from wikipedia api
+//Get Data from wikipedia
 
-var journalistparents;
-
-function getData() {
-  async function getJournalistParents() {
-    //URL currently people with picture, sitelinks, coutry of citizenship UK, occupation journalist, DOB after 1930
-    const response = await fetch(
-      `https://query.wikidata.org/sparql?query=select%20distinct%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20%3FoccupationLabel%20%3FeducationLabel%20%3Fimage%20%3Fitemsitelinks%20%3Fparent%20%3FparentLabel%20%3FparentDescription%20%3FeducationParentLabel%20%3Fjournalistimage%20%3Fsitelinks%20where%20%7B%0A%20%20%20%7B%20%3Fitem%20%0A%20%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20wd%3AQ1930187%20%3B%20%20%20%23occupation%20journalist%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP27%20wd%3AQ145%20%3B%20%20%20%20%23country%20of%20citizenship%20UK%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20%3Foccupation%20%3B%20%20%23show%20occupation%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP18%20%3Fimage%20%3B%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP569%20%3Fdate%20%3B%0A%0A%20%20%20%20%20%20%20%20%20%20wikibase%3Asitelinks%20%3Fitemsitelinks.%20%20%23%20show%20sitelinks%0A%0A%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20OPTIONAL%7B%3Fitem%20wdt%3AP69%20%3Feducation%20.%7D%20%20%20%20%20%20%20%23education%0A%20%20%09FILTER%20(%3Fdate%20%3E%20%221930-01-01T00%3A00%3A00Z%22%5E%5Exsd%3AdateTime)%0A%0A%0A%0A%20%20%0A%20%20%20%7B%20%3Fparent%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP40%20%3Fitem%20%3B%09%23parent%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20%3Fparentoccupation%20%3B%20%20%23show%20occupation%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP18%20%3Fjournalistimage%20%3B%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wikibase%3Asitelinks%20%3Fsitelinks.%20%23%20show%20sitelinks%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20OPTIONAL%7B%3Fparent%20wdt%3AP69%20%3FeducationParent%20.%7D%20%20%20%20%20%20%20%23education%0A%0A%0A%0A%20%0A%20%20%20%20%20%20FILTER((%3Fsitelinks)%20%3E%200%20)%20.%20%20%23parents%20has%20wikipage%0A%0ASERVICE%20wikibase%3Alabel%0A%7B%20%0Abd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20.%0A%7D%20%0A%7D%0AORDER%20BY%20DESC(%3Fitemsitelinks)%0A%0A%0A`,
-      {
-        headers: {
-          Accept: 'application/sparql-results+json',
-        },
-      }
-    );
-    const payload = await response.json();
-    journalistparents = payload.results.bindings;
-    draw();
-  }
-
-  getJournalistParents();
-
-  // async function getJournalistSiblings() {
-  //   //URL currently people with picture, sitelinks, coutry of citizenship UK, occupation journalist, DOB after 1930
-  //   const response = await fetch(
-  //     `https://query.wikidata.org/sparql?query=select%20distinct%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20%3FoccupationLabel%20%3FeducationLabel%20%3Fimage%20%3Fitemsitelinks%20%3Fparent%20%3FparentLabel%20%3FparentDescription%20%3FeducationParentLabel%20%3Fjournalistimage%20%3Fsitelinks%20where%20%7B%0A%20%20%20%7B%20%3Fitem%20%0A%20%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20wd%3AQ1930187%20%3B%20%20%20%23occupation%20journalist%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP27%20wd%3AQ145%20%3B%20%20%20%20%23country%20of%20citizenship%20UK%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20%3Foccupation%20%3B%20%20%23show%20occupation%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP18%20%3Fimage%20%3B%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP569%20%3Fdate%20%3B%0A%0A%20%20%20%20%20%20%20%20%20%20wikibase%3Asitelinks%20%3Fitemsitelinks.%20%20%23%20show%20sitelinks%0A%0A%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20OPTIONAL%7B%3Fitem%20wdt%3AP69%20%3Feducation%20.%7D%20%20%20%20%20%20%20%23education%0A%20%20%09FILTER%20(%3Fdate%20%3E%20%221930-01-01T00%3A00%3A00Z%22%5E%5Exsd%3AdateTime)%0A%0A%0A%0A%20%20%0A%20%20%20%7B%20%3Fparent%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP40%20%3Fitem%20%3B%09%23parent%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20%3Fparentoccupation%20%3B%20%20%23show%20occupation%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wdt%3AP18%20%3Fjournalistimage%20%3B%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20wikibase%3Asitelinks%20%3Fsitelinks.%20%23%20show%20sitelinks%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20OPTIONAL%7B%3Fparent%20wdt%3AP69%20%3FeducationParent%20.%7D%20%20%20%20%20%20%20%23education%0A%0A%0A%0A%20%0A%20%20%20%20%20%20FILTER((%3Fsitelinks)%20%3E%200%20)%20.%20%20%23parents%20has%20wikipage%0A%0ASERVICE%20wikibase%3Alabel%0A%7B%20%0Abd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20.%0A%7D%20%0A%7D%0AORDER%20BY%20DESC(%3Fitemsitelinks)%0A%0A%0A`,
-  //     {
-  //       headers: {
-  //         Accept: 'application/sparql-results+json',
-  //       },
-  //     }
-  //   );
-  //   const payload = await response.json();
-  //   journalistsiblings = payload.results.bindings;
-  //   draw();
-  // }
-
-  // getJournalistSiblings();
+async function getJournalistRelatives() {
+  //URL currently people with picture, sitelinks, coutry of citizenship UK, occupation journalist, DOB after 1930
+  const response = await fetch(
+    `https://query.wikidata.org/sparql?query=select%20distinct%20%3FjournalistLabel%20%3FjournalistDescription%20%3Fimage%20%3FfamilyPropertyLabel%20%3FpersonLabel%20%3Ffamilyimage%0A%0Awhere%20%7B%0A%20%20%0A%20%20%20%20%7B%3FfamilyProperty%20wdt%3AP1647*%20wd%3AP1038%20%3B%20%7D%0A%20%20%7B%3FfamilyProperty%20wikibase%3AdirectClaim%20%3FfamilyClaim%20%3B%7D%0A%20%20%0A%20%20%20%7B%20%3Fjournalist%20%0A%20%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP106%20wd%3AQ1930187%20%3B%20%20%20%23occupation%20journalist%20%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP27%20wd%3AQ145%20%3B%20%20%20%20%23country%20of%20citizenship%20UK%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP18%20%3Fimage%20%3B%0A%20%20%20%20%20%20%20%20%20%20wdt%3AP569%20%3Fdate%20.%7D%0A%20%20%09FILTER%20(%3Fdate%20%3E%20%221930-01-01T00%3A00%3A00Z%22%5E%5Exsd%3AdateTime)%0A%20%20%0A%20%20%20%20%20%7B%3Fperson%20wdt%3AP18%20%3Ffamilyimage%20%3Bwikibase%3Asitelinks%20%3Fsitelinks%20.%20%7D%0A%20%20%0A%20%20%3Fjournalist%20%3FfamilyClaim%20%3Fperson%20.%0A%20%20%23%20request%20labels%0A%20%20%3Fperson%20rdfs%3Alabel%20%3FpersonLabel%20.%0A%20%20FILTER((LANG(%3FpersonLabel))%20%3D%20%22en%22%20%20%26%26%20((%3Fsitelinks)%20%3E%200%20)%20).%0A%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22%20%7D%0A%0A%7D%0AORDER%20BY%20%3FjournalistLabel`,
+    {
+      headers: {
+        Accept: 'application/sparql-results+json',
+      },
+    }
+  );
+  const payload = await response.json();
+  journalistrelatives = payload.results.bindings;
+  cleanData(payload.results.bindings);
 }
 
-getData();
+getJournalistRelatives();
+
+//Clean data
+
+function cleanData(journalistrelatives) {
+  console.log(journalistrelatives);
+
+  function removeduplicates() {
+    let uniquejournalistrelatives = [];
+    for (var i = 0; i <= journalistrelatives.length; i++) {
+      if (i === journalistrelatives.length - 1) {
+        removedubconnection(uniquejournalistrelatives); //currently running prior to last one as causes error as function is adding 1 to i
+      } else if (
+        journalistrelatives[i].personLabel.value ===
+        journalistrelatives[i + 1].personLabel.value
+      ) {
+      } else {
+        uniquejournalistrelatives.push(journalistrelatives[i]);
+      }
+    }
+  }
+
+  removeduplicates();
+
+  function removedubconnection(data) {
+    console.log(data);
+
+    let uniquejournalistrelatives = [];
+    for (var i = 0; i <= data.length; i++) {
+      if (
+        data[i].personLabel.value ===
+        data.forEach((journalist) => journalist.journalistLabel.value)
+      ) {
+      } else {
+        uniquejournalistrelatives.push(data[i]);
+      }
+      console.log('removed', uniquejournalistrelatives);
+    }
+  }
+
+  // journalistrelativescleaned = [];
+
+  // for (var i = 0; i < uniquejournalistrelatives.length; i++) {
+  //   if (
+  //     uniquejournalistrelatives[i].journalistLabel.value ==
+  //     uniquejournalistrelatives[i + 1].journalistLabel.value
+  //   ) {
+  //     journalistrelativescleaned.push({
+  //       ...uniquejournalistrelatives[i],
+  //       relativeLabel: uniquejournalistrelatives[i + 1].personLabel,
+  //       relative: uniquejournalistrelatives[i + 1].familyPropertyLabel,
+  //       relativeImage: uniquejournalistrelatives[i + 1].familyimage,
+  //     });
+  //     i++;
+  //   } else journalistrelativescleaned.push(uniquejournalistrelatives[i]);
+  // }
+
+  // draw();
+}
 
 //put in to web map
 
@@ -52,31 +87,30 @@ function draw() {
   // value corresponds with the age of the person
 
   nodes = [];
-  journalistparents.forEach((journalist, i) =>
+
+  journalistrelatives.forEach((journalist, i) =>
     nodes.push(
       {
         id: i,
         shape: 'circularImage',
         image: `${journalist.image.value}`,
-        label: `${journalist.itemLabel.value}`,
+        label: `${journalist.journalistLabel.value}`,
       },
       {
-        id: journalistparents.length + i,
+        id: journalistrelatives.length + i + 1,
         shape: 'circularImage',
-        image: `${journalist.journalistimage.value}`,
-        label: `${journalist.parentLabel.value}`,
+        image: `${journalist.familyimage.value}`,
+        label: `${journalist.personLabel.value}`,
       }
     )
   );
 
-  // create connections between people
-  // value corresponds with the amount of contact between two people
   edges = [];
-  journalistparents.forEach((journalist, i) =>
-    edges.push({ from: i, to: journalistparents.length + i })
+
+  journalistrelatives.forEach((journalist, i) =>
+    edges.push({ from: i, to: journalistrelatives.length + i })
   );
 
-  // create a network
   var container = document.getElementById('mynetwork');
   var data = {
     nodes: nodes,
