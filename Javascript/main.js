@@ -24,104 +24,118 @@ getJournalistRelatives();
 //Clean data
 
 function cleanData(journalistrelatives) {
-  function removeduplicates() {
-    let uniquejournalistrelatives = [];
-    for (var i = 0; i <= journalistrelatives.length; i++) {
-      if (i === journalistrelatives.length - 1) {
-        removedubconnection(uniquejournalistrelatives); //currently running prior to last one as causes error as function is adding 1 to i
-      } else if (
-        journalistrelatives[i].personLabel.value ===
-        journalistrelatives[i + 1].personLabel.value
-      ) {
-      } else {
-        uniquejournalistrelatives.push(journalistrelatives[i]);
-      }
-    }
+  function removedubs() {
+    let uniquejournalist = journalistrelatives.filter(
+      (thing, index, self) =>
+        index ===
+        self.findIndex(
+          (t) =>
+            t.personLabel.value === thing.personLabel.value &&
+            t.journalistLabel.value === thing.journalistLabel.value
+        )
+    );
+
+    removespouse(uniquejournalist);
   }
+  removedubs();
 
-  removeduplicates();
+  function removespouse(uniquejournalist) {
+    let cleanData = [];
 
-  //WIP in progress
-  function removedubconnection(uniquejournalistrelatives) {
-    console.log('unique journalist', uniquejournalistrelatives);
-    let journalistrelatives = [];
-
-    for (var i = 0; i < uniquejournalistrelatives.length; i++) {
-      if (uniquejournalistrelatives[i].familyPropertyLabel.value === 'spouse') {
-        // WIP. Ran out of memory. If relative connection is spouse. Check the Array being pushed to, if the spouse is already as a journalist skip
-        // journalistrelatives.forEach(function (journalist) {
-        //   if (
-        //     uniquejournalistrelatives[i].personLabel.value ===
-        //     journalist.journalistLabel.value
-        //   ) {
-        //     console.log(
-        //       'match2. this person not added',
-        //       uniquejournalistrelatives[i].journalistLabel.value
-        //     );
-        //   }
+    uniquejournalist.forEach(function (j) {
+      if (j.familyPropertyLabel.value === 'spouse') {
+        // WIP local stprage issue currently
+        // cleanData.forEach(function (e) {
+        //   if (e.journalistLabel.value === j.personLabel.value) {
+        //   } else cleanData.push(j);
         // });
-      } else journalistrelatives.push(uniquejournalistrelatives[i]);
-    }
-    console.log('journalistrelatives', journalistrelatives);
+      } else cleanData.push(j);
+    });
+
+    addImages(cleanData);
   }
 
-  draw(journalistrelatives);
+  function addImages(cleanData) {
+    for (let i = 0; i < cleanData.length; i++) {
+      if (cleanData[i] === 'undefined') continue;
+      cleanData[i].relativeimage = {
+        value:
+          '/Users/isabel/Desktop/Coding/PersonalProjects/wiki-connections/OutlinePerson.png',
+      };
+    }
+    draw(cleanData);
+  }
 }
 
 //put in to web map
 
-var nodes = null;
+nodes = null;
 var edges = null;
 var network = null;
 
 // Called when the Visualization API is loaded.
 function draw(journalistrelatives) {
-  // create people.
-  // value corresponds with the age of the person
-  console.log('running', journalistrelatives);
   nodes = [];
 
-  journalistrelatives.forEach((journalist, i) =>
-    nodes.push(
-      {
-        id: i,
-        shape: 'circularImage',
-        image: `${journalist.image.value}`,
-        label: `${journalist.journalistLabel.value}`,
-      },
-      {
-        id: journalistrelatives.length + i + 1,
-        shape: 'circularImage',
-        image: `${journalist.familyimage.value}`,
-        label: `${journalist.personLabel.value}`,
-      }
-    )
-  );
-
-  edges = [];
-
-  journalistrelatives.forEach((journalist, i) =>
-    edges.push({ from: i, to: journalistrelatives.length + i })
-  );
-
-  var container = document.getElementById('mynetwork');
-  var data = {
-    nodes: nodes,
-    edges: edges,
-  };
-  var options = {
-    nodes: {
-      borderWidth: 4,
-      size: 30,
-      color: {
-        border: '#222222',
-        background: '#666666',
-      },
-      font: { color: '#eeeeee' },
-    },
-    edges: {
-      color: 'lightgray',
-    },
-  };
-  network = new vis.Network(container, data, options);
+  journalistrelatives.forEach(function (journalist) {
+    nodes.some(function (data) {
+      console.log(data.journalistLabel.value, journalist.journalistLabel.value);
+      if (data.journalistLabel.value === journalist.journalistLabel.value) {
+        nodes.push({
+          id: journalistrelatives.length,
+          shape: 'circularImage',
+          image: `${journalist.familyimage.value}`,
+          brokenImage:
+            '/Users/isabel/Desktop/Coding/PersonalProjects/wiki-connections/OutlinePerson.png',
+          label: `${journalist.personLabel.value}`,
+        });
+      } else
+        nodes.push(
+          {
+            id: i,
+            shape: 'circularImage',
+            image: `${journalist.image.value}`,
+            brokenImage:
+              '/Users/isabel/Desktop/Coding/PersonalProjects/wiki-connections/OutlinePerson.png',
+            label: `${journalist.journalistLabel.value}`,
+          },
+          {
+            id: journalistrelatives.length,
+            shape: 'circularImage',
+            image: `${journalist.familyimage.value}`,
+            brokenImage:
+              '/Users/isabel/Desktop/Coding/PersonalProjects/wiki-connections/OutlinePerson.png',
+            label: `${journalist.personLabel.value}`,
+          }
+        );
+    });
+  });
 }
+
+//   edges = [];
+
+//   journalistrelatives.forEach((journalist, i) =>
+//     edges.push({ from: i, to: journalistrelatives.length + i })
+//   );
+
+//   var container = document.getElementById('mynetwork');
+//   var data = {
+//     nodes: nodes,
+//     edges: edges,
+//   };
+//   var options = {
+//     nodes: {
+//       borderWidth: 4,
+//       size: 30,
+//       color: {
+//         border: '#222222',
+//         background: '#666666',
+//       },
+//       font: { color: '#eeeeee' },
+//     },
+//     edges: {
+//       color: 'lightgray',
+//     },
+//   };
+//   network = new vis.Network(container, data, options);
+// }
